@@ -1,0 +1,9 @@
+{
+    "name": "pcan-basic",
+    "version-string": "4.10.0.4",
+    "port-version": 0,
+    "description": "PCAN-Basic API for Linux provided by PEAK-System.",
+    "homepage": "https://www.peak-system.com",
+    "license": "LicenseRef-Proprietary"
+  }
+  
