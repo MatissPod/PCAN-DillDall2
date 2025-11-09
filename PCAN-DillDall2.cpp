@@ -9,9 +9,8 @@
 
 static char FD_BITRATE_CFG[] =
     "f_clock_mhz=80,"
-    "nom_brp=2,nom_tseg1=63,nom_tseg2=16,nom_sjw=16,"
-    "data_brp=2,data_tseg1=7,data_tseg2=2,data_sjw=2";
-
+    "nom_brp=1,nom_tseg1=63,nom_tseg2=16,nom_sjw=16,"
+    "data_brp=1,data_tseg1=11,data_tseg2=4,data_sjw=4";
 std::atomic<bool> keepRunning(true);
 
 void signalHandler(int signum) {
@@ -35,7 +34,7 @@ int main() {
     BYTE listenOnly = PCAN_PARAMETER_ON;
     CAN_SetValue(pcanHandle, PCAN_LISTEN_ONLY, &listenOnly, sizeof(listenOnly));
 
-    std::cout << "CAN FD Reader Started (500K/2M)\n";
+    std::cout << "CAN FD Reader Started (1M/5M)\n";
     std::cout << "Press Ctrl+C to stop\n\n";
 
     std::signal(SIGINT, signalHandler);
