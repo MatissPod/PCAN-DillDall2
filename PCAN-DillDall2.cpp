@@ -1,88 +1,91 @@
-#include <csignal>
 #include <iostream>
 #include <thread>
+#include <chrono>
 #include <atomic>
-#include <windows.h>  // Required for Windows types like DWORD, BYTE, etc.
-#include "PCANBasic.h"  // PEAK PCANBasic API
+#include <csignal>
+#include <iomanip>
+#include <windows.h>
+#include <PCANBasic.h>
 
-// =====================
-// Configuration
-// =====================
 static char FD_BITRATE_CFG[] =
-    "f_clock=80000000,"
-    "nom_brp=10,nom_tseg1=5,nom_tseg2=2,nom_sjw=1,"
-    "data_brp=2,data_tseg1=7,data_tseg2=2,data_sjw=1";
+    "f_clock_mhz=80,"
+    "nom_brp=2,nom_tseg1=63,nom_tseg2=16,nom_sjw=16,"
+    "data_brp=2,data_tseg1=7,data_tseg2=2,data_sjw=2";
 
+std::atomic<bool> keepRunning(true);
 
+void signalHandler(int signum) {
+    keepRunning = false;
+}
 
-// =====================
-// Main program
-// =====================
 int main() {
-  
-    TPCANHandle pcanHandle = PCAN_USBBUS1;  // use first USB PCAN device
-    bool running = false;
+    TPCANHandle pcanHandle = PCAN_USBBUS1;
 
-    // Initialize PCAN-FD channel
+    // Initialize
+    CAN_Uninitialize(pcanHandle);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
     TPCANStatus status = CAN_InitializeFD(pcanHandle, FD_BITRATE_CFG);
     if (status != PCAN_ERROR_OK) {
-        std::cerr << "Error initializing PCAN FD channel: 0x"
-                  << std::hex << status << std::dec << std::endl;
+        std::cerr << "Failed to initialize PCAN: 0x" << std::hex << status << std::dec << std::endl;
         return 1;
     }
 
-    std::cout << "PCAN FD channel initialized successfully.\n";
-    running = true;
+    // Enable listen-only mode
+    BYTE listenOnly = PCAN_PARAMETER_ON;
+    CAN_SetValue(pcanHandle, PCAN_LISTEN_ONLY, &listenOnly, sizeof(listenOnly));
 
-    std::atomic<bool> keepRunning(true);
+    std::cout << "CAN FD Reader Started (500K/2M)\n";
+    std::cout << "Press Ctrl+C to stop\n\n";
 
-    // Handle Ctrl+C gracefully
-    std::signal(SIGINT, [](int){ 
-        std::cout << "\nStopping reader...\n"; 
-        std::exit(0); 
-    });
+    std::signal(SIGINT, signalHandler);
 
-    // Main loop: read messages periodically
+    int messageCount = 0;
+    int errorCount = 0;
+
     while (keepRunning) {
-        if (!running) {
-            std::cerr << "Error: PCAN FD channel is not running.\n";
-            break;
-        }
-
         TPCANMsgFD canMsg;
         TPCANTimestampFD timeStamp;
 
-        // Try to read a message
         TPCANStatus readStatus = CAN_ReadFD(pcanHandle, &canMsg, &timeStamp);
 
         if (readStatus == PCAN_ERROR_QRCVEMPTY) {
-            // no messages available, small delay
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
             continue;
         }
-        else if (readStatus != PCAN_ERROR_OK) {
-            std::cerr << "Error reading message from PCAN: 0x"
-                      << std::hex << readStatus << std::dec << std::endl;
-            break;
+        
+        if (readStatus == PCAN_ERROR_OK) {
+            messageCount++;
+
+            // Print message
+            std::cout << "[" << messageCount << "] ID: 0x" 
+                      << std::hex << std::setw(8) << std::setfill('0')
+                      << (canMsg.ID & 0x1FFFFFFF)
+                      << std::dec << " | DLC: " << static_cast<int>(canMsg.DLC)
+                      << " | ";
+
+            for (int i = 0; i < canMsg.DLC && i < 64; ++i) {
+                std::cout << std::hex << std::setw(2) << std::setfill('0') 
+                          << static_cast<int>(canMsg.DATA[i]) << " ";
+            }
+            std::cout << std::dec << std::endl;
         }
-
-        // Print the message info
-        std::cout << "[PCAN] ID: 0x" << std::hex << (canMsg.ID & 0x1FFFFFFF)
-                  << std::dec << ", DLC: " << static_cast<int>(canMsg.DLC)
-                  << ", Data: ";
-
-        for (int i = 0; i < canMsg.DLC; ++i) {
-            std::cout << std::hex << static_cast<int>(canMsg.DATA[i] & 0xFF) << " ";
+        else {
+            errorCount++;
+            
+            // Only show errors occasionally to avoid spam
+            if (errorCount % 50 == 1) {
+                std::cerr << "Bus errors detected (" << errorCount << " total)\n";
+            }
+            
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-
-        std::cout << std::dec << std::endl;
     }
 
     // Cleanup
-    if (running) {
-        CAN_Uninitialize(pcanHandle);
-        std::cout << "PCAN interface shut down.\n";
-    }
+    CAN_Uninitialize(pcanHandle);
+    std::cout << "\nStopped. Messages: " << messageCount 
+              << " | Errors: " << errorCount << std::endl;
 
     return 0;
 }
