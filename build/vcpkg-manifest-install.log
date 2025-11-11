@@ -20,4 +20,4 @@ pcan-basic provides CMake targets:
   find_package(pcan-basic CONFIG REQUIRED)
   target_link_libraries(main PRIVATE pcan-basic)
 
-All requested installations completed successfully in: 2.33 ms
+All requested installations completed successfully in: 2.66 ms

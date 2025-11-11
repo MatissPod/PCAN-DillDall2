@@ -1,192 +1,356 @@
-message(STATUS "pcan-basic: Starting portfile execution for x64-windows")
+if(UNIX AND NOT APPLE)
+    include(vcpkg_common_functions)
 
-# Determine architecture-specific paths
-if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
-    set(ARCH_FOLDER "x64")
-    message(STATUS "pcan-basic: Target architecture is x64")
-elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
-    set(ARCH_FOLDER "x86")
-    message(STATUS "pcan-basic: Target architecture is x86")
-elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
-    set(ARCH_FOLDER "ARM64")
-    message(STATUS "pcan-basic: Target architecture is ARM64")
-else()
-    message(FATAL_ERROR "pcan-basic: Unsupported architecture ${VCPKG_TARGET_ARCHITECTURE}")
-endif()
+    message(STATUS "pcan-basic: Starting portfile execution for x64-linux")
 
-# --- Define download details ---
-set(API_URL "https://www.peak-system.com/fileadmin/media/files/PCAN-Basic.zip")
-set(API_ZIP "PCANBasic_Windows.zip")
-message(STATUS "pcan-basic: Download details set - URL: ${API_URL}, ZIP: ${API_ZIP}")
+    # Define download details.
+    set(API_URL "https://www.peak-system.com/quick/BasicLinux")
+    set(API_TARBALL "PCAN-Basic_API.tar.gz")
+    set(API_FOLDER "PCAN-Basic_Linux-4.10.0.4")
+    message(STATUS "pcan-basic: Download details set - URL: ${API_URL}, Tarball: ${API_TARBALL}, Folder: ${API_FOLDER}")
 
-# --- Define paths ---
-set(DOWNLOAD_DIR "${CURRENT_PACKAGES_DIR}/download")
-message(STATUS "pcan-basic: Creating download directory: ${DOWNLOAD_DIR}")
-file(MAKE_DIRECTORY "${DOWNLOAD_DIR}")
-set(ZIP_PATH "${DOWNLOAD_DIR}/${API_ZIP}")
-message(STATUS "pcan-basic: ZIP will be downloaded to: ${ZIP_PATH}")
+    # Define paths.
+    set(DOWNLOAD_DIR "${CURRENT_PACKAGES_DIR}/download")
+    message(STATUS "pcan-basic: Creating download directory: ${DOWNLOAD_DIR}")
+    file(MAKE_DIRECTORY "${DOWNLOAD_DIR}")
+    set(TARBALL_PATH "${DOWNLOAD_DIR}/${API_TARBALL}")
+    message(STATUS "pcan-basic: Tarball will be downloaded to: ${TARBALL_PATH}")
 
-# --- Download the zipfile ---
-message(STATUS "pcan-basic: Downloading zip from ${API_URL} to ${ZIP_PATH}")
-file(DOWNLOAD
-    "${API_URL}"
-    "${ZIP_PATH}"
-    SHOW_PROGRESS
-)
-message(STATUS "pcan-basic: ZIP downloaded successfully.")
+    # Download the tarball.
+    message(STATUS "pcan-basic: Downloading tarball from ${API_URL} to ${TARBALL_PATH}")
+    file(DOWNLOAD 
+        "${API_URL}" 
+        "${TARBALL_PATH}" 
+        SHOW_PROGRESS
+        HTTP_USER_AGENT "Mozilla/5.0 (compatible; VCPKG)"
+    )
+    message(STATUS "pcan-basic: Tarball downloaded successfully.")
 
-# --- Verify download ---
-if(NOT EXISTS "${ZIP_PATH}")
-    message(FATAL_ERROR "pcan-basic: ZIP not found at ${ZIP_PATH}")
-else()
-    file(SIZE "${ZIP_PATH}" ZIP_SIZE)
-    message(STATUS "pcan-basic: Downloaded zip size: ${ZIP_SIZE} bytes")
-endif()
+    # Verify the downloaded file.
+    if(EXISTS "${TARBALL_PATH}")
+        file(SIZE "${TARBALL_PATH}" TAR_SIZE)
+        message(STATUS "pcan-basic: Downloaded tarball size: ${TAR_SIZE} bytes")
+    else()
+        message(FATAL_ERROR "pcan-basic: Tarball not found at ${TARBALL_PATH}")
+    endif()
 
-# --- Extract the zip ---
-set(EXTRACT_DIR "${CURRENT_PACKAGES_DIR}/src")
-message(STATUS "pcan-basic: Creating extraction directory: ${EXTRACT_DIR}")
-file(MAKE_DIRECTORY "${EXTRACT_DIR}")
-message(STATUS "pcan-basic: Extracting zip to ${EXTRACT_DIR}")
-file(ARCHIVE_EXTRACT
-    INPUT "${ZIP_PATH}"
-    DESTINATION "${EXTRACT_DIR}"
-)
-message(STATUS "pcan-basic: Extraction completed.")
+    # Extract the tarball.
+    set(EXTRACT_DIR "${CURRENT_PACKAGES_DIR}/src")
+    message(STATUS "pcan-basic: Creating extraction directory: ${EXTRACT_DIR}")
+    file(MAKE_DIRECTORY "${EXTRACT_DIR}")
+    message(STATUS "pcan-basic: Extracting tarball to ${EXTRACT_DIR}")
+    file(ARCHIVE_EXTRACT 
+        INPUT "${TARBALL_PATH}" 
+        DESTINATION "${EXTRACT_DIR}"
+    )
+    message(STATUS "pcan-basic: Extraction completed.")
 
-# --- Detect the extracted folder ---
-# List contents to see what was extracted
-file(GLOB EXTRACTED_ITEMS "${EXTRACT_DIR}/*")
-message(STATUS "pcan-basic: Contents of extract dir: ${EXTRACTED_ITEMS}")
+    # Define the root directory of the extracted content.
+    set(API_DIR "${EXTRACT_DIR}/${API_FOLDER}")
+    message(STATUS "pcan-basic: API directory set to: ${API_DIR}")
 
-# Check if files were extracted directly to EXTRACT_DIR or into a subdirectory
-set(API_DIR "")
+    # Set the build directory as specified by the README.
+    set(BUILD_DIR "${API_DIR}/libpcanbasic/pcanbasic")
+    message(STATUS "pcan-basic: Build directory set to: ${BUILD_DIR}")
 
-# First check if Include and x64 are directly in EXTRACT_DIR
-if(EXISTS "${EXTRACT_DIR}/Include" AND EXISTS "${EXTRACT_DIR}/x64")
-    set(API_DIR "${EXTRACT_DIR}")
-    message(STATUS "pcan-basic: Files extracted directly to root, using: ${API_DIR}")
-else()
-    # Otherwise, look for a subdirectory containing the PCAN files
-    foreach(ITEM ${EXTRACTED_ITEMS})
-        if(IS_DIRECTORY "${ITEM}")
-            get_filename_component(FOLDER_NAME "${ITEM}" NAME)
-            message(STATUS "pcan-basic: Checking directory: ${FOLDER_NAME}")
-            # Check if this looks like the PCAN directory (contains Include or x64 folder)
-            if(EXISTS "${ITEM}/Include" AND EXISTS "${ITEM}/x64")
-                set(API_DIR "${ITEM}")
-                message(STATUS "pcan-basic: Using API directory: ${API_DIR}")
-                break()
-            endif()
-        endif()
+    # Execute the build steps.
+    message(STATUS "pcan-basic: Running 'make clean' in ${BUILD_DIR}")
+    execute_process(COMMAND make clean
+        WORKING_DIRECTORY "${BUILD_DIR}"
+        RESULT_VARIABLE CLEAN_RESULT
+    )
+    if(NOT CLEAN_RESULT EQUAL 0)
+        message(FATAL_ERROR "pcan-basic: 'make clean' failed with error code ${CLEAN_RESULT}")
+    endif()
+    message(STATUS "pcan-basic: 'make clean' completed successfully.")
+
+    message(STATUS "pcan-basic: Running 'make' in ${BUILD_DIR}")
+    execute_process(COMMAND make
+        WORKING_DIRECTORY "${BUILD_DIR}"
+        RESULT_VARIABLE MAKE_RESULT
+    )
+    if(NOT MAKE_RESULT EQUAL 0)
+        message(FATAL_ERROR "pcan-basic: 'make' failed with error code ${MAKE_RESULT}")
+    endif()
+    message(STATUS "pcan-basic: Build completed successfully.")
+
+    # Check if the library was actually built
+    if(NOT EXISTS "${BUILD_DIR}/lib/libpcanbasic.so")
+        message(FATAL_ERROR "pcan-basic: Library file not found at ${BUILD_DIR}/lib/libpcanbasic.so")
+    endif()
+    message(STATUS "pcan-basic: Verified library file exists at ${BUILD_DIR}/lib/libpcanbasic.so")
+
+    # Install the shared library.
+    message(STATUS "pcan-basic: Installing shared library to ${CURRENT_PACKAGES_DIR}/lib")
+    file(INSTALL 
+        FILES "${BUILD_DIR}/lib/libpcanbasic.so"
+        DESTINATION "${CURRENT_PACKAGES_DIR}/lib"
+    )
+    message(STATUS "pcan-basic: Shared library installed successfully.")
+
+    # Install shared library to debug directory as well
+    file(INSTALL 
+        FILES "${BUILD_DIR}/lib/libpcanbasic.so"
+        DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib"
+    )
+    message(STATUS "pcan-basic: Shared library installed to debug directory.")
+
+    # Install header files by globbing them.
+    file(GLOB PCAN_HEADERS "${BUILD_DIR}/include/*.h")
+    if(PCAN_HEADERS)
+        file(INSTALL FILES ${PCAN_HEADERS} DESTINATION "${CURRENT_PACKAGES_DIR}/include")
+        message(STATUS "pcan-basic: Header files installed successfully.")
+    else()
+        message(WARNING "pcan-basic: No header files found in ${BUILD_DIR}/include")
+    endif()
+
+
+    # Create a file containing the target definition for use in your project
+    set(CONFIG_PATH "${CURRENT_PACKAGES_DIR}/share/pcan-basic/pcan-basic-config.cmake")
+    file(WRITE "${CONFIG_PATH}" "
+    # This file was auto-generated by the pcan-basic portfile
+
+    # Set policy CMP0111 to NEW to ensure the imported target has its location property
+    if(POLICY CMP0111)
+    cmake_policy(SET CMP0111 NEW)
+    endif()
+
+    # Find the actual library path by searching
+    # Check multiple possible paths
+    set(_lib_paths
+    \"\${CMAKE_SOURCE_DIR}/build/vcpkg_installed/x64-linux/lib/libpcanbasic.so\"
+    )
+
+    set(_lib_path \"\")
+    foreach(_path IN LISTS _lib_paths)
+    if(EXISTS \"\${_path}\")
+        set(_lib_path \"\${_path}\")
+        break()
+    endif()
     endforeach()
-endif()
 
-if(API_DIR STREQUAL "")
-    message(FATAL_ERROR "pcan-basic: Could not find PCAN-Basic directory in extracted files")
-endif()
+    if(_lib_path STREQUAL \"\")
+    message(STATUS \"Couldn't find libpcanbasic.so using specified paths, trying absolute\")
+    find_library(PCAN_BASIC_LIB NAMES libpcanbasic.so REQUIRED)
+    if(PCAN_BASIC_LIB)
+        set(_lib_path \"\${PCAN_BASIC_LIB}\")
+        message(STATUS \"Found pcan-basic at \${_lib_path}\")
+    else()
+        # Just use the expected path and let CMake give a more specific error
+        set(_lib_path \"\${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/lib/libpcanbasic.so\")
+    endif()
+    endif()
 
-message(STATUS "pcan-basic: API directory set to: ${API_DIR}")
+    # Create the imported target
+    if(NOT TARGET pcan-basic)
+        add_library(pcan-basic SHARED IMPORTED)
+        set_target_properties(pcan-basic PROPERTIES
+            IMPORTED_LOCATION \"\${_lib_path}\"
+            INTERFACE_INCLUDE_DIRECTORIES \"\${CMAKE_CURRENT_LIST_DIR}/../../include\"
+        )
+        
+        # Set configuration specific properties
+        set_property(TARGET pcan-basic APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
+        set_target_properties(pcan-basic PROPERTIES IMPORTED_LOCATION_RELEASE \"\${_lib_path}\")
+        
+        # Set debug configuration if available
+        set(_debug_lib_path \"\${CMAKE_BINARY_DIR}/vcpkg_installed/x64-linux/lib/libpcanbasic.so\")
+        if(EXISTS \"\${_debug_lib_path}\")
+            set_property(TARGET pcan-basic APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+            set_target_properties(pcan-basic PROPERTIES IMPORTED_LOCATION_DEBUG \"\${_debug_lib_path}\")
+        endif()
+    endif()
+    ")
+elseif(WIN32)
+    message(STATUS "pcan-basic: Starting portfile execution for x64-windows")
+    # Determine architecture-specific paths
+    if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
+        set(ARCH_FOLDER "x64")
+        message(STATUS "pcan-basic: Target architecture is x64")
+    elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
+        set(ARCH_FOLDER "x86")
+        message(STATUS "pcan-basic: Target architecture is x86")
+    elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
+        set(ARCH_FOLDER "ARM64")
+        message(STATUS "pcan-basic: Target architecture is ARM64")
+    else()
+        message(FATAL_ERROR "pcan-basic: Unsupported architecture ${VCPKG_TARGET_ARCHITECTURE}")
+    endif()
 
-# --- Define include / lib / bin locations ---
-set(INCLUDE_DIR "${API_DIR}/Include")
-set(LIB_DIR     "${API_DIR}/${ARCH_FOLDER}/VC_LIB")
-set(BIN_DIR     "${API_DIR}/${ARCH_FOLDER}")
+    # --- Define download details ---
+    set(API_URL "https://www.peak-system.com/fileadmin/media/files/PCAN-Basic.zip")
+    set(API_ZIP "PCANBasic_Windows.zip")
+    message(STATUS "pcan-basic: Download details set - URL: ${API_URL}, ZIP: ${API_ZIP}")
 
-message(STATUS "pcan-basic: Include dir: ${INCLUDE_DIR}")
-message(STATUS "pcan-basic: Lib dir:     ${LIB_DIR}")
-message(STATUS "pcan-basic: Bin dir:     ${BIN_DIR}")
+    # --- Define paths ---
+    set(DOWNLOAD_DIR "${CURRENT_PACKAGES_DIR}/download")
+    message(STATUS "pcan-basic: Creating download directory: ${DOWNLOAD_DIR}")
+    file(MAKE_DIRECTORY "${DOWNLOAD_DIR}")
+    set(ZIP_PATH "${DOWNLOAD_DIR}/${API_ZIP}")
+    message(STATUS "pcan-basic: ZIP will be downloaded to: ${ZIP_PATH}")
 
-# Verify directories exist
-if(NOT EXISTS "${INCLUDE_DIR}")
-    message(WARNING "pcan-basic: Include directory does not exist: ${INCLUDE_DIR}")
-endif()
-if(NOT EXISTS "${LIB_DIR}")
-    message(WARNING "pcan-basic: Lib directory does not exist: ${LIB_DIR}")
-endif()
-if(NOT EXISTS "${BIN_DIR}")
-    message(WARNING "pcan-basic: Bin directory does not exist: ${BIN_DIR}")
-endif()
-
-# --- Install headers ---
-file(GLOB PCAN_HEADERS "${INCLUDE_DIR}/*.h")
-if(PCAN_HEADERS)
-    file(INSTALL FILES ${PCAN_HEADERS}
-         DESTINATION "${CURRENT_PACKAGES_DIR}/include")
-    message(STATUS "pcan-basic: Header files installed successfully.")
-else()
-    message(WARNING "pcan-basic: No header files found in ${INCLUDE_DIR}")
-endif()
-
-# --- Install library (.lib) ---
-file(GLOB PCAN_LIBS "${LIB_DIR}/*.lib")
-if(PCAN_LIBS)
-    file(INSTALL FILES ${PCAN_LIBS}
-         DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
-    # Also install to debug lib (PCAN doesn't provide separate debug builds)
-    file(INSTALL FILES ${PCAN_LIBS}
-         DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib")
-    message(STATUS "pcan-basic: Lib files installed successfully.")
-else()
-    message(FATAL_ERROR "pcan-basic: No .lib files found in ${LIB_DIR}")
-endif()
-
-# --- Install binary (.dll) ---
-file(GLOB PCAN_DLLS "${BIN_DIR}/*.dll")
-if(PCAN_DLLS)
-    file(INSTALL FILES ${PCAN_DLLS}
-         DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
-    # Also install to debug bin (PCAN doesn't provide separate debug builds)
-    file(INSTALL FILES ${PCAN_DLLS}
-         DESTINATION "${CURRENT_PACKAGES_DIR}/debug/bin")
-    message(STATUS "pcan-basic: DLL files installed successfully.")
-else()
-    message(WARNING "pcan-basic: No .dll files found in ${BIN_DIR}")
-endif()
-
-# --- Create CMake config file for consumer projects ---
-set(CONFIG_PATH "${CURRENT_PACKAGES_DIR}/share/pcan-basic/pcan-basic-config.cmake")
-file(WRITE "${CONFIG_PATH}" "
-# This file was auto-generated by the pcan-basic portfile
-
-if(POLICY CMP0111)
-  cmake_policy(SET CMP0111 NEW)
-endif()
-
-# Set include and lib paths
-set(PCAN_BASIC_INCLUDE_DIR \"\${CMAKE_CURRENT_LIST_DIR}/../../include\")
-set(PCAN_BASIC_LIB_DIR     \"\${CMAKE_CURRENT_LIST_DIR}/../../lib\")
-
-# Create imported target
-if(NOT TARGET pcan-basic)
-    add_library(pcan-basic SHARED IMPORTED)
-    set_target_properties(pcan-basic PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES \"\${PCAN_BASIC_INCLUDE_DIR}\"
-        IMPORTED_IMPLIB \"\${PCAN_BASIC_LIB_DIR}/PCANBasic.lib\"
-        IMPORTED_LOCATION \"\${CMAKE_CURRENT_LIST_DIR}/../../bin/PCANBasic.dll\"
+    # --- Download the zipfile ---
+    message(STATUS "pcan-basic: Downloading zip from ${API_URL} to ${ZIP_PATH}")
+    file(DOWNLOAD
+        "${API_URL}"
+        "${ZIP_PATH}"
+        SHOW_PROGRESS
     )
-    # cfg-specific properties
-    set_property(TARGET pcan-basic APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
-    set_target_properties(pcan-basic PROPERTIES 
-        IMPORTED_IMPLIB_RELEASE \"\${PCAN_BASIC_LIB_DIR}/PCANBasic.lib\"
-        IMPORTED_LOCATION_RELEASE \"\${CMAKE_CURRENT_LIST_DIR}/../../bin/PCANBasic.dll\"
+    message(STATUS "pcan-basic: ZIP downloaded successfully.")
+
+    # --- Verify download ---
+    if(NOT EXISTS "${ZIP_PATH}")
+        message(FATAL_ERROR "pcan-basic: ZIP not found at ${ZIP_PATH}")
+    else()
+        file(SIZE "${ZIP_PATH}" ZIP_SIZE)
+        message(STATUS "pcan-basic: Downloaded zip size: ${ZIP_SIZE} bytes")
+    endif()
+
+    # --- Extract the zip ---
+    set(EXTRACT_DIR "${CURRENT_PACKAGES_DIR}/src")
+    message(STATUS "pcan-basic: Creating extraction directory: ${EXTRACT_DIR}")
+    file(MAKE_DIRECTORY "${EXTRACT_DIR}")
+    message(STATUS "pcan-basic: Extracting zip to ${EXTRACT_DIR}")
+    file(ARCHIVE_EXTRACT
+        INPUT "${ZIP_PATH}"
+        DESTINATION "${EXTRACT_DIR}"
     )
-    # Debug configuration (same as release since PCAN doesn't provide debug builds)
-    set_property(TARGET pcan-basic APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
-    set_target_properties(pcan-basic PROPERTIES 
-        IMPORTED_IMPLIB_DEBUG \"\${CMAKE_CURRENT_LIST_DIR}/../../debug/lib/PCANBasic.lib\"
-        IMPORTED_LOCATION_DEBUG \"\${CMAKE_CURRENT_LIST_DIR}/../../debug/bin/PCANBasic.dll\"
+    message(STATUS "pcan-basic: Extraction completed.")
+
+    # --- Detect the extracted folder ---
+    # List contents to see what was extracted
+    file(GLOB EXTRACTED_ITEMS "${EXTRACT_DIR}/*")
+    message(STATUS "pcan-basic: Contents of extract dir: ${EXTRACTED_ITEMS}")
+
+    # Check if files were extracted directly to EXTRACT_DIR or into a subdirectory
+    set(API_DIR "")
+
+    # First check if Include and x64 are directly in EXTRACT_DIR
+    if(EXISTS "${EXTRACT_DIR}/Include" AND EXISTS "${EXTRACT_DIR}/x64")
+        set(API_DIR "${EXTRACT_DIR}")
+        message(STATUS "pcan-basic: Files extracted directly to root, using: ${API_DIR}")
+    else()
+        # Otherwise, look for a subdirectory containing the PCAN files
+        foreach(ITEM ${EXTRACTED_ITEMS})
+            if(IS_DIRECTORY "${ITEM}")
+                get_filename_component(FOLDER_NAME "${ITEM}" NAME)
+                message(STATUS "pcan-basic: Checking directory: ${FOLDER_NAME}")
+                # Check if this looks like the PCAN directory (contains Include or x64 folder)
+                if(EXISTS "${ITEM}/Include" AND EXISTS "${ITEM}/x64")
+                    set(API_DIR "${ITEM}")
+                    message(STATUS "pcan-basic: Using API directory: ${API_DIR}")
+                    break()
+                endif()
+            endif()
+        endforeach()
+    endif()
+
+    if(API_DIR STREQUAL "")
+        message(FATAL_ERROR "pcan-basic: Could not find PCAN-Basic directory in extracted files")
+    endif()
+
+    message(STATUS "pcan-basic: API directory set to: ${API_DIR}")
+
+    # --- Define include / lib / bin locations ---
+    set(INCLUDE_DIR "${API_DIR}/Include")
+    set(LIB_DIR     "${API_DIR}/${ARCH_FOLDER}/VC_LIB")
+    set(BIN_DIR     "${API_DIR}/${ARCH_FOLDER}")
+
+    message(STATUS "pcan-basic: Include dir: ${INCLUDE_DIR}")
+    message(STATUS "pcan-basic: Lib dir:     ${LIB_DIR}")
+    message(STATUS "pcan-basic: Bin dir:     ${BIN_DIR}")
+
+    # Verify directories exist
+    if(NOT EXISTS "${INCLUDE_DIR}")
+        message(WARNING "pcan-basic: Include directory does not exist: ${INCLUDE_DIR}")
+    endif()
+    if(NOT EXISTS "${LIB_DIR}")
+        message(WARNING "pcan-basic: Lib directory does not exist: ${LIB_DIR}")
+    endif()
+    if(NOT EXISTS "${BIN_DIR}")
+        message(WARNING "pcan-basic: Bin directory does not exist: ${BIN_DIR}")
+    endif()
+
+    # --- Install headers ---
+    file(GLOB PCAN_HEADERS "${INCLUDE_DIR}/*.h")
+    if(PCAN_HEADERS)
+        file(INSTALL FILES ${PCAN_HEADERS}
+            DESTINATION "${CURRENT_PACKAGES_DIR}/include")
+        message(STATUS "pcan-basic: Header files installed successfully.")
+    else()
+        message(WARNING "pcan-basic: No header files found in ${INCLUDE_DIR}")
+    endif()
+
+    # --- Install library (.lib) ---
+    file(GLOB PCAN_LIBS "${LIB_DIR}/*.lib")
+    if(PCAN_LIBS)
+        file(INSTALL FILES ${PCAN_LIBS}
+            DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
+        # Also install to debug lib (PCAN doesn't provide separate debug builds)
+        file(INSTALL FILES ${PCAN_LIBS}
+            DESTINATION "${CURRENT_PACKAGES_DIR}/debug/lib")
+        message(STATUS "pcan-basic: Lib files installed successfully.")
+    else()
+        message(FATAL_ERROR "pcan-basic: No .lib files found in ${LIB_DIR}")
+    endif()
+
+    # --- Install binary (.dll) ---
+    file(GLOB PCAN_DLLS "${BIN_DIR}/*.dll")
+    if(PCAN_DLLS)
+        file(INSTALL FILES ${PCAN_DLLS}
+            DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
+        # Also install to debug bin (PCAN doesn't provide separate debug builds)
+        file(INSTALL FILES ${PCAN_DLLS}
+            DESTINATION "${CURRENT_PACKAGES_DIR}/debug/bin")
+        message(STATUS "pcan-basic: DLL files installed successfully.")
+    else()
+        message(WARNING "pcan-basic: No .dll files found in ${BIN_DIR}")
+    endif()
+
+    # --- Create CMake config file for consumer projects ---
+    set(CONFIG_PATH "${CURRENT_PACKAGES_DIR}/share/pcan-basic/pcan-basic-config.cmake")
+    file(WRITE "${CONFIG_PATH}" "
+    # This file was auto-generated by the pcan-basic portfile
+
+    if(POLICY CMP0111)
+    cmake_policy(SET CMP0111 NEW)
+    endif()
+
+    # Set include and lib paths
+    set(PCAN_BASIC_INCLUDE_DIR \"\${CMAKE_CURRENT_LIST_DIR}/../../include\")
+    set(PCAN_BASIC_LIB_DIR     \"\${CMAKE_CURRENT_LIST_DIR}/../../lib\")
+
+    # Create imported target
+    if(NOT TARGET pcan-basic)
+        add_library(pcan-basic SHARED IMPORTED)
+        set_target_properties(pcan-basic PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES \"\${PCAN_BASIC_INCLUDE_DIR}\"
+            IMPORTED_IMPLIB \"\${PCAN_BASIC_LIB_DIR}/PCANBasic.lib\"
+            IMPORTED_LOCATION \"\${CMAKE_CURRENT_LIST_DIR}/../../bin/PCANBasic.dll\"
+        )
+        # cfg-specific properties
+        set_property(TARGET pcan-basic APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
+        set_target_properties(pcan-basic PROPERTIES 
+            IMPORTED_IMPLIB_RELEASE \"\${PCAN_BASIC_LIB_DIR}/PCANBasic.lib\"
+            IMPORTED_LOCATION_RELEASE \"\${CMAKE_CURRENT_LIST_DIR}/../../bin/PCANBasic.dll\"
+        )
+        # Debug configuration (same as release since PCAN doesn't provide debug builds)
+        set_property(TARGET pcan-basic APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+        set_target_properties(pcan-basic PROPERTIES 
+            IMPORTED_IMPLIB_DEBUG \"\${CMAKE_CURRENT_LIST_DIR}/../../debug/lib/PCANBasic.lib\"
+            IMPORTED_LOCATION_DEBUG \"\${CMAKE_CURRENT_LIST_DIR}/../../debug/bin/PCANBasic.dll\"
+        )
+    endif()
+    ")
+    message(STATUS "pcan-basic: Config file written to ${CONFIG_PATH}")
+
+    # Handle copyright
+    file(INSTALL 
+        FILES "${API_DIR}/ReadMe.txt"
+        DESTINATION "${CURRENT_PACKAGES_DIR}/share/pcan-basic"
+        RENAME copyright
     )
+    message(STATUS "pcan-basic: Copyright file installed.")
+
+    message(STATUS "pcan-basic: Windows portfile execution completed successfully")
 endif()
-")
-message(STATUS "pcan-basic: Config file written to ${CONFIG_PATH}")
-
-# Handle copyright
-file(INSTALL 
-    FILES "${API_DIR}/ReadMe.txt"
-    DESTINATION "${CURRENT_PACKAGES_DIR}/share/pcan-basic"
-    RENAME copyright
-)
-message(STATUS "pcan-basic: Copyright file installed.")
-
-message(STATUS "pcan-basic: Windows portfile execution completed successfully")

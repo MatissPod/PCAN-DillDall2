@@ -1,4 +1,4 @@
-Package: pcan-basic:x64-windows@4.10.0.4
+Package: pcan-basic-linux:x64-windows@4.10.0.4
 
 **Host Environment**
 
@@ -6,7 +6,7 @@ Package: pcan-basic:x64-windows@4.10.0.4
 - Compiler: MSVC 19.44.35219.0
 - CMake Version: 4.1.1
 -    vcpkg-tool version: 2025-10-16-71538f2694db93da4668782d094768ba74c45991
-    vcpkg-scripts version: 195276f716 2025-11-06 (7 hours ago)
+    vcpkg-scripts version: 195276f716 2025-11-06 (4 days ago)
 
 **To Reproduce**
 
@@ -20,23 +20,22 @@ CMake Warning at scripts/cmake/vcpkg_common_functions.cmake:3 (message):
   provided in all portfile.cmake invocations.  Please remove
   `include(vcpkg_common_functions)`.
 Call Stack (most recent call first):
-  C:/Users/matis/Documents/Revolve/PCAN-DillDall2/ports/pcan-basic/portfile.cmake:1 (include)
+  C:/Users/matis/Documents/Revolve/PCAN-DillDall2/ports/pcan-basic-linux/portfile.cmake:1 (include)
   scripts/ports.cmake:206 (include)
 
 
--- pcan-basic: Starting portfile execution for x64-windows
--- pcan-basic: Target architecture is x64
--- pcan-basic: Download details set - URL: https://www.peak-system.com/fileadmin/media/files/PCAN-Basic.zip, ZIP: PCANBasic_Windows.zip
--- pcan-basic: Creating download directory: C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/download
--- pcan-basic: ZIP will be downloaded to: C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/download/PCANBasic_Windows.zip
--- pcan-basic: Downloading zip from https://www.peak-system.com/fileadmin/media/files/PCAN-Basic.zip to C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/download/PCANBasic_Windows.zip
-CMake Warning (dev) at C:/Users/matis/Documents/Revolve/PCAN-DillDall2/ports/pcan-basic/portfile.cmake:33 (file):
+-- pcan-basic: Starting portfile execution for x64-linux
+-- pcan-basic: Download details set - URL: https://www.peak-system.com/quick/BasicLinux, Tarball: PCAN-Basic_API.tar.gz, Folder: PCAN-Basic_Linux-4.10.0.4
+-- pcan-basic: Creating download directory: C:/Users/matis/vcpkg/packages/pcan-basic-linux_x64-windows/download
+-- pcan-basic: Tarball will be downloaded to: C:/Users/matis/vcpkg/packages/pcan-basic-linux_x64-windows/download/PCAN-Basic_API.tar.gz
+-- pcan-basic: Downloading tarball from https://www.peak-system.com/quick/BasicLinux to C:/Users/matis/vcpkg/packages/pcan-basic-linux_x64-windows/download/PCAN-Basic_API.tar.gz
+CMake Warning (dev) at C:/Users/matis/Documents/Revolve/PCAN-DillDall2/ports/pcan-basic-linux/portfile.cmake:20 (file):
   Unexpected argument: HTTP_USER_AGENT
 Call Stack (most recent call first):
   scripts/ports.cmake:206 (include)
 This warning is for project developers.  Use -Wno-dev to suppress it.
 
-CMake Warning (dev) at C:/Users/matis/Documents/Revolve/PCAN-DillDall2/ports/pcan-basic/portfile.cmake:33 (file):
+CMake Warning (dev) at C:/Users/matis/Documents/Revolve/PCAN-DillDall2/ports/pcan-basic-linux/portfile.cmake:20 (file):
   Unexpected argument: Mozilla/5.0 (compatible; VCPKG)
 Call Stack (most recent call first):
   scripts/ports.cmake:206 (include)
@@ -143,20 +142,16 @@ This warning is for project developers.  Use -Wno-dev to suppress it.
 -- [download 98% complete]
 -- [download 99% complete]
 -- [download 100% complete]
--- pcan-basic: ZIP downloaded successfully.
--- pcan-basic: Downloaded zip size: 12118416 bytes
--- pcan-basic: Creating extraction directory: C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src
--- pcan-basic: Extracting zip to C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src
+-- pcan-basic: Tarball downloaded successfully.
+-- pcan-basic: Downloaded tarball size: 3573612 bytes
+-- pcan-basic: Creating extraction directory: C:/Users/matis/vcpkg/packages/pcan-basic-linux_x64-windows/src
+-- pcan-basic: Extracting tarball to C:/Users/matis/vcpkg/packages/pcan-basic-linux_x64-windows/src
 -- pcan-basic: Extraction completed.
--- pcan-basic: Contents of extract dir: C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/ARM64;C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/Include;C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/LiesMich.txt;C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/NuGet;C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/PCAN-Parameter_Documentation.pdf;C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/PCANBasic_deu.chm;C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/PCANBasic_enu.chm;C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/ReadMe.txt;C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/Samples;C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/x64;C:/Users/matis/vcpkg/packages/pcan-basic_x64-windows/src/x86
--- pcan-basic: Found directory: ARM64
--- pcan-basic: Found directory: Include
--- pcan-basic: Found directory: NuGet
--- pcan-basic: Found directory: Samples
--- pcan-basic: Found directory: x64
--- pcan-basic: Found directory: x86
-CMake Error at C:/Users/matis/Documents/Revolve/PCAN-DillDall2/ports/pcan-basic/portfile.cmake:81 (message):
-  pcan-basic: Could not find PCAN-Basic directory in extracted files
+-- pcan-basic: API directory set to: C:/Users/matis/vcpkg/packages/pcan-basic-linux_x64-windows/src/PCAN-Basic_Linux-4.10.0.4
+-- pcan-basic: Build directory set to: C:/Users/matis/vcpkg/packages/pcan-basic-linux_x64-windows/src/PCAN-Basic_Linux-4.10.0.4/libpcanbasic/pcanbasic
+-- pcan-basic: Running 'make clean' in C:/Users/matis/vcpkg/packages/pcan-basic-linux_x64-windows/src/PCAN-Basic_Linux-4.10.0.4/libpcanbasic/pcanbasic
+CMake Error at C:/Users/matis/Documents/Revolve/PCAN-DillDall2/ports/pcan-basic-linux/portfile.cmake:62 (message):
+  pcan-basic: 'make clean' failed with error code no such file or directory
 Call Stack (most recent call first):
   scripts/ports.cmake:206 (include)
 
@@ -172,7 +167,8 @@ Call Stack (most recent call first):
 {
   "dependencies": [
     "fmt",
-    "pcan-basic"
+    "pcan-basic-linux",
+    "pcan-basic-windows"
   ]
 }
 

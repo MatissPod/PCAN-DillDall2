@@ -3,13 +3,13 @@
   "spdxVersion": "SPDX-2.2",
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
-  "documentNamespace": "https://spdx.org/spdxdocs/pcan-basic-x64-windows-4.10.0.4-0e53c61e-aad0-4bfe-bd01-8869fc72f08f",
-  "name": "pcan-basic:x64-windows@4.10.0.4 58983114ce72541f9e03af354b0e839cd2ea81cd98f3cefbbaceca9386f1c8a6",
+  "documentNamespace": "https://spdx.org/spdxdocs/pcan-basic-x64-windows-4.10.0.4-6fbbf67a-d44b-417e-ad41-3530e4ef6596",
+  "name": "pcan-basic:x64-windows@4.10.0.4 d6517d1dd2b71e062f462f12aa331e65353c6215c33489d409d8388613069ddf",
   "creationInfo": {
     "creators": [
       "Tool: vcpkg-2025-10-16-71538f2694db93da4668782d094768ba74c45991"
     ],
-    "created": "2025-11-07T13:37:43Z"
+    "created": "2025-11-11T13:30:02Z"
   },
   "relationships": [
     {
@@ -219,7 +219,7 @@
     {
       "name": "pcan-basic:x64-windows",
       "SPDXID": "SPDXRef-binary",
-      "versionInfo": "58983114ce72541f9e03af354b0e839cd2ea81cd98f3cefbbaceca9386f1c8a6",
+      "versionInfo": "d6517d1dd2b71e062f462f12aa331e65353c6215c33489d409d8388613069ddf",
       "downloadLocation": "NONE",
       "licenseConcluded": "LicenseRef-Proprietary",
       "licenseDeclared": "NOASSERTION",
@@ -234,7 +234,7 @@
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "d697e644e5224715c540d60f60ce6335ca2088cf6b127de3819e8d84cd52e12c"
+          "checksumValue": "bf620adb38dfe850568918cf99e0a3617ab9a320dd5a42f07f9aa3c79509208d"
         }
       ],
       "licenseConcluded": "NOASSERTION",
@@ -366,7 +366,7 @@
       "checksums": [
         {
           "algorithm": "SHA256",
-          "checksumValue": "dad1f917e75907f74474fef810ecc4db183d4e83864af6e7499dec29421cf61f"
+          "checksumValue": "b937af9365ff927c82cb1c2c02babe49ba5d6c393d092d9546e477617321c5e1"
         }
       ],
       "licenseConcluded": "NOASSERTION",

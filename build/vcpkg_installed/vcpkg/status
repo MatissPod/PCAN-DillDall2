@@ -25,7 +25,7 @@ Package: pcan-basic
 Version: 4.10.0.4
 Architecture: x64-windows
 Multi-Arch: same
-Abi: 58983114ce72541f9e03af354b0e839cd2ea81cd98f3cefbbaceca9386f1c8a6
+Abi: d6517d1dd2b71e062f462f12aa331e65353c6215c33489d409d8388613069ddf
 Description: PCAN-Basic API for Linux provided by PEAK-System.
 Status: install ok installed
 
