@@ -2,12 +2,23 @@
   "version": 2,
   "configurePresets": [
     {
-      "name": "vcpkg",
+      "name": "win",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       }
-    }
+    },
+    {
+      "name": "lin",
+      "generator": "Unix Makefiles",
+      "binaryDir": "build",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "./vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_MAKE_PROGRAM": "/usr/bin/make",
+        "CMAKE_C_COMPILER": "/usr/bin/gcc",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+      }
+      }
   ]
 }

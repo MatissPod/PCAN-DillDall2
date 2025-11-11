@@ -2,10 +2,17 @@
   "version": 2,
   "configurePresets": [
     {
-      "name": "default",
-      "inherits": "vcpkg",
+      "name": "windows",
+      "inherits": "win",
       "environment": {
         "VCPKG_ROOT": "C:/Users/matis/vcpkg"
+      }
+    },
+    {
+      "name": "linux",
+      "inherits": "lin",
+      "environment": {
+        "VCPKG_ROOT": "./vcpkg"
       }
     }
   ]

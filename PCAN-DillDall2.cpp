@@ -4,7 +4,10 @@
 #include <atomic>
 #include <csignal>
 #include <iomanip>
+
+#ifdef _WIN32
 #include <windows.h>
+#endif
 #include <PCANBasic.h>
 
 static char FD_BITRATE_CFG[] =
