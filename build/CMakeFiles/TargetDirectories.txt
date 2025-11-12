@@ -1,3 +1,0 @@
-/home/matiss/PCAN-DillDall2/build/CMakeFiles/PCAN-DillDall2.dir
-/home/matiss/PCAN-DillDall2/build/CMakeFiles/edit_cache.dir
-/home/matiss/PCAN-DillDall2/build/CMakeFiles/rebuild_cache.dir
