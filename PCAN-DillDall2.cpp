@@ -12,9 +12,10 @@
 #include <PCANBasic.h>
 
 static char FD_BITRATE_CFG[] =
-    "f_clock=80000000,"
+    "f_clock_mhz=80,"
     "nom_brp=10,nom_tseg1=5,nom_tseg2=2,nom_sjw=1,"
     "data_brp=2,data_tseg1=5,data_tseg2=2,data_sjw=1";
+
 std::atomic<bool> keepRunning(true);
 
 void signalHandler(int signum) {
