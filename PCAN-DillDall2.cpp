@@ -5,6 +5,8 @@
 #include <csignal>
 #include <iomanip>
 #include <vector>
+#include <unordered_map>
+
 
 #ifdef _WIN32
 #include <windows.h>
@@ -14,9 +16,10 @@
 static char FD_BITRATE_CFG[] =
     "f_clock_mhz=80,"
     "nom_brp=10,nom_tseg1=5,nom_tseg2=2,nom_sjw=1,"
-    "data_brp=2,data_tseg1=5,data_tseg2=2,data_sjw=1";
+    "data_brp=1,data_tseg1=11,data_tseg2=4,data_sjw=1";
 
 std::atomic<bool> keepRunning(true);
+std::unordered_map<uint32_t, uint8_t> counterMap;
 
 void signalHandler(int signum) {
     keepRunning = false;
@@ -64,11 +67,11 @@ static void listAttachedChannels()
 }
 
 int main() {
-    TPCANHandle pcanHandle = PCAN_USBBUS1;
+    TPCANHandle pcanHandle = PCAN_USBBUS1; //#TODO switch case for å finne riktig USBBUS (se 01 lookupchannel i api eksempel)
 
     // Initialize
     CAN_Uninitialize(pcanHandle);
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
     TPCANStatus status = CAN_InitializeFD(pcanHandle, FD_BITRATE_CFG);
     if (status != PCAN_ERROR_OK) {
@@ -96,7 +99,6 @@ int main() {
 
     std::signal(SIGINT, signalHandler);
 
-    int messageCount = 0;
     int errorCount = 0;
 
     while (keepRunning) {
@@ -106,25 +108,20 @@ int main() {
         TPCANStatus readStatus = CAN_ReadFD(pcanHandle, &canMsg, &timeStamp);
 
         if (readStatus == PCAN_ERROR_QRCVEMPTY) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+           // std::this_thread::sleep_for(std::chrono::milliseconds(50));
             continue;
         }
-        
+
+        uint32_t canId = canMsg.ID & 0x1FFFFFFF;
+        bool isService = canId & 0x2000000;
+
+        uint32_t portId = 0;
+        if (!isService) {
+            portId = canId >> 8 & 0x1FFF;
+        }
+
         if (readStatus == PCAN_ERROR_OK) {
-            messageCount++;
-
-            // Print message
-            std::cout << "[" << messageCount << "] ID: 0x" 
-                      << std::hex << std::setw(8) << std::setfill('0')
-                      << (canMsg.ID & 0x1FFFFFFF)
-                      << std::dec << " | DLC: " << static_cast<int>(canMsg.DLC)
-                      << " | ";
-
-            for (int i = 0; i < canMsg.DLC && i < 64; ++i) {
-                std::cout << std::hex << std::setw(2) << std::setfill('0') 
-                          << static_cast<int>(canMsg.DATA[i]) << " ";
-            }
-            std::cout << std::dec << std::endl;
+            counterMap[portId] += 1;      
         }
         else {
             errorCount++;
@@ -137,14 +134,16 @@ int main() {
                 printErrorText("Channel status", st);
             }
             
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+           // std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
     // Cleanup
     CAN_Uninitialize(pcanHandle);
-    std::cout << "\nStopped. Messages: " << messageCount 
-              << " | Errors: " << errorCount << std::endl;
+    
+    for (auto& [msg, count] : counterMap) {
+        std::cout << msg << " " << std::to_string(count) << "\n";
+    }
 
     return 0;
 }
