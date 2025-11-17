@@ -11,7 +11,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include <PCANBasic.h>
+#include "PCBUSB.h"
 
 static char FD_BITRATE_CFG[] =
     "f_clock_mhz=80,"
